@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase, getUserExplanationCount, saveExplanation, getUserTransactionHistory, type TransactionExplanation } from "@/lib/supabase";
 import { TransactionForm } from "./_components/transaction-form";
 import { TransactionResult } from "./_components/transaction-result";
-import { TransactionFlow } from "./_components/transaction-flow";
+import { TransactionFlow } from "./_components/transaction-flow-wrapper";
 import { TransactionHistory } from "./_components/transaction-history";
 import { AuthModal } from "./_components/auth-modal";
 import { UsageDisplay } from "./_components/usage-display";

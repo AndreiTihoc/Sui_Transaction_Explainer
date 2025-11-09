@@ -1,6 +1,5 @@
 "use client";
 
-import { useCallback } from "react";
 import {
   ReactFlow,
   Background,
@@ -16,12 +15,12 @@ import "@xyflow/react/dist/style.css";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GitBranch } from "lucide-react";
 
-interface TransactionFlowProps {
+interface TransactionFlowInnerProps {
   nodes: Node[];
   edges: Edge[];
 }
 
-export function TransactionFlow({ nodes, edges }: TransactionFlowProps) {
+export function TransactionFlowInner({ nodes, edges }: TransactionFlowInnerProps) {
   const [flowNodes, , onNodesChange] = useNodesState(nodes);
   const [flowEdges, , onEdgesChange] = useEdgesState(edges);
 
@@ -33,7 +32,7 @@ export function TransactionFlow({ nodes, edges }: TransactionFlowProps) {
           TRANSACTION FLOW DIAGRAM
         </CardTitle>
         <CardDescription className="text-cyan-300/70 font-mono text-xs">
-           Visualization of blockchain transaction flow
+          Professional visualization of blockchain transaction flow
         </CardDescription>
       </CardHeader>
       <CardContent>
