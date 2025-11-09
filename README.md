@@ -14,6 +14,24 @@ A production-ready Next.js application that explains Sui blockchain transactions
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 - **Error Handling**: Clear, user-friendly error messages for all edge cases
 
+## Screenshots
+
+### 1. Landing Page
+![Landing Page](images/landing.png)
+
+### 2. Authentication with Supabase
+![Authentication with Supabase](images/db.png)
+
+### 3. History
+![History](images/history.png)
+
+### 4. Transaction Explainer
+![Transaction Explainer](images/explainer.png)
+
+### 5. Diagram Visualization
+![Diagram Visualization](images/visualize.png)
+
+
 ## Architecture
 
 ### Tech Stack
