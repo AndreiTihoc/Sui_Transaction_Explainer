@@ -5,11 +5,15 @@ const nextConfig = {
   },
   images: { unoptimized: true },
   transpilePackages: ['@xyflow/react', '@xyflow/system'],
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@xyflow/react': '@xyflow/react',
-    };
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
     return config;
   },
 };

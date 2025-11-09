@@ -5,8 +5,6 @@ import {
   Background,
   Controls,
   MiniMap,
-  Node,
-  Edge,
   useNodesState,
   useEdgesState,
   BackgroundVariant,
@@ -16,11 +14,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { GitBranch } from "lucide-react";
 
 interface TransactionFlowInnerProps {
-  nodes: Node[];
-  edges: Edge[];
+  nodes: any[];
+  edges: any[];
 }
 
-export function TransactionFlowInner({ nodes, edges }: TransactionFlowInnerProps) {
+export default function TransactionFlowInner({ nodes, edges }: TransactionFlowInnerProps) {
   const [flowNodes, , onNodesChange] = useNodesState(nodes);
   const [flowEdges, , onEdgesChange] = useEdgesState(edges);
 

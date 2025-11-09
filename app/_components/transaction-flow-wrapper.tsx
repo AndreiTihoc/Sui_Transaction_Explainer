@@ -3,10 +3,9 @@
 import dynamic from "next/dynamic";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GitBranch } from "lucide-react";
-import type { Node, Edge } from "@xyflow/react";
 
 const TransactionFlowInner = dynamic(
-  () => import("./transaction-flow-inner").then((mod) => mod.TransactionFlowInner),
+  () => import("./transaction-flow-inner"),
   {
     ssr: false,
     loading: () => (
@@ -33,8 +32,8 @@ const TransactionFlowInner = dynamic(
 );
 
 interface TransactionFlowProps {
-  nodes: Node[];
-  edges: Edge[];
+  nodes: any[];
+  edges: any[];
 }
 
 export function TransactionFlow({ nodes, edges }: TransactionFlowProps) {
