@@ -1,6 +1,7 @@
 # Sui Transaction Explainer
 
 A production-ready Next.js application that explains Sui blockchain transactions in plain language using AI. Simply paste a transaction digest or Sui Explorer URL, and get an instant, human-readable explanation powered by Google's Gemini 2.5 Flash.
+App Link: https://sui-transaction-explainer-dusky.vercel.app/
 
 ## Features
 
