@@ -327,4 +327,4 @@ Transaction data is fetched directly from Sui's public RPC nodes. The AI analysi
 
 ---
 
-Built with Tihoc Andrei for the Sui community
+Built by Tihoc Andrei for the Sui community
