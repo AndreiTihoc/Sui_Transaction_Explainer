@@ -1,0 +1,90 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Search, Loader2 } from "lucide-react";
+import type { SuiNetwork } from "@/lib/sui";
+
+interface TransactionFormProps {
+  onSubmit: (digest: string, network: SuiNetwork) => void;
+  isLoading: boolean;
+}
+
+export function TransactionForm({ onSubmit, isLoading }: TransactionFormProps) {
+  const [digest, setDigest] = useState("");
+  const [network, setNetwork] = useState<SuiNetwork>("mainnet");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (digest.trim()) {
+      onSubmit(digest.trim(), network);
+    }
+  };
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Explain a Sui Transaction</CardTitle>
+        <CardDescription>
+          Enter a transaction digest or paste a Sui Explorer URL to get a detailed explanation
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="network">Network</Label>
+            <Select
+              value={network}
+              onValueChange={(value) => setNetwork(value as SuiNetwork)}
+              disabled={isLoading}
+            >
+              <SelectTrigger id="network">
+                <SelectValue placeholder="Select network" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mainnet">Mainnet</SelectItem>
+                <SelectItem value="testnet">Testnet</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="digest">Transaction Digest or Explorer URL</Label>
+            <Input
+              id="digest"
+              placeholder="Enter transaction digest or paste explorer URL..."
+              value={digest}
+              onChange={(e) => setDigest(e.target.value)}
+              disabled={isLoading}
+              className="font-mono text-sm"
+            />
+          </div>
+
+          <Button type="submit" className="w-full" disabled={isLoading || !digest.trim()}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Analyzing Transaction...
+              </>
+            ) : (
+              <>
+                <Search className="mr-2 h-4 w-4" />
+                Explain Transaction
+              </>
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
