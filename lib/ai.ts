@@ -12,7 +12,7 @@ export function getAIClient() {
 
 export function getAIModel() {
   const genAI = getAIClient();
-  return genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+  return genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
 }
 
 export const TRANSACTION_EXPLAINER_PROMPT = `

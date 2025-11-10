@@ -1,20 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase, getUserExplanationCount, saveExplanation, getUserTransactionHistory, type TransactionExplanation } from "@/lib/supabase";
+import { supabase, getUserCredits, useExplanation, refundExplanation, saveExplanation, getUserTransactionHistory, type TransactionExplanation } from "@/lib/supabase";
 import { TransactionForm } from "./_components/transaction-form";
 import { TransactionResult } from "./_components/transaction-result";
 import { TransactionFlow } from "./_components/transaction-flow-wrapper";
 import { TransactionHistory } from "./_components/transaction-history";
 import { AuthModal } from "./_components/auth-modal";
-import { UsageDisplay } from "./_components/usage-display";
+import { PricingModal } from "./_components/pricing-modal";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, LogOut, Zap, Shield, History } from "lucide-react";
+import { AlertCircle, LogOut, Zap, Shield, History, CreditCard } from "lucide-react";
 import type { SuiNetwork } from "@/lib/sui";
 import type { TransactionFacts } from "@/lib/parse";
 import { mapSuiTxToGraph } from "@/lib/mapSuiTxToGraph";
+import { config } from "@/lib/config";
 
 interface AIResponse {
   risk_level: "low" | "medium" | "high";
@@ -43,8 +44,9 @@ interface ExplainResponse {
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
-  const [usageCount, setUsageCount] = useState(0);
+  const [credits, setCredits] = useState(0);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ExplainResponse | null>(null);
@@ -55,7 +57,7 @@ export default function Home() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       if (session?.user) {
-        loadUsage(session.user.id);
+        loadCredits(session.user.id);
       }
     });
 
@@ -63,9 +65,9 @@ export default function Home() {
       (async () => {
         setUser(session?.user || null);
         if (session?.user) {
-          await loadUsage(session.user.id);
+          await loadCredits(session.user.id);
         } else {
-          setUsageCount(0);
+          setCredits(0);
         }
       })();
     });
@@ -73,14 +75,14 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const loadUsage = async (userId: string) => {
+  const loadCredits = async (userId: string) => {
     try {
-      const count = await getUserExplanationCount(userId);
-      setUsageCount(count);
+      const userCredits = await getUserCredits(userId);
+      setCredits(userCredits);
       const historyData = await getUserTransactionHistory(userId, 20);
       setHistory(historyData);
     } catch (err) {
-      console.error("Failed to load usage:", err);
+      console.error("Failed to load credits:", err);
     }
   };
 
@@ -91,8 +93,10 @@ export default function Home() {
       return;
     }
 
-    if (usageCount >= 5) {
-      setError("You've reached your limit of 5 transaction explanations");
+    // Check if user has credits or free explanations
+    if (credits <= 0) {
+      setShowPricingModal(true);
+      setError("You've used all your free explanations. Please purchase credits to continue.");
       return;
     }
 
@@ -100,7 +104,12 @@ export default function Home() {
     setError(null);
     setResult(null);
 
+    let explanationUsed = { usedFree: false, usedCredit: false };
+    
     try {
+      // Use a credit or free explanation before making the API call
+      explanationUsed = await useExplanation(user.id);
+
       const response = await fetch("/api/explain", {
         method: "POST",
         headers: {
@@ -113,6 +122,9 @@ export default function Home() {
 
       if (!response.ok) {
         setError(data.error || "Failed to explain transaction");
+        // Refund the credit if API call failed
+        await refundExplanation(user.id, explanationUsed.usedFree, explanationUsed.usedCredit);
+        await loadCredits(user.id);
         return;
       }
 
@@ -126,10 +138,19 @@ export default function Home() {
         data.facts,
         data.ai
       );
-      await loadUsage(user.id);
+      await loadCredits(user.id);
       setActiveTab("analyze");
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred");
+      // Refund the credit if there was an error
+      if (explanationUsed.usedFree || explanationUsed.usedCredit) {
+        try {
+          await refundExplanation(user.id, explanationUsed.usedFree, explanationUsed.usedCredit);
+        } catch (refundErr) {
+          console.error("Failed to refund explanation:", refundErr);
+        }
+      }
+      await loadCredits(user.id);
     } finally {
       setIsLoading(false);
     }
@@ -143,7 +164,7 @@ export default function Home() {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
-    setUsageCount(0);
+    setCredits(0);
     setResult(null);
     setError(null);
     setHistory([]);
@@ -208,8 +229,20 @@ export default function Home() {
         </header>
 
         {user && (
-          <div className="mb-6">
-            <UsageDisplay used={usageCount} limit={5} />
+          <div className="mb-6 flex items-center justify-center gap-4">
+            <div className="flex items-center gap-2 text-sm text-cyan-400 font-mono bg-cyan-500/10 px-4 py-2 rounded border border-cyan-500/30">
+              <Zap className="h-4 w-4" />
+              <span>Credits: {credits}</span>
+            </div>
+            <Button
+              onClick={() => setShowPricingModal(true)}
+              variant="outline"
+              size="sm"
+              className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300"
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              Buy Credits
+            </Button>
           </div>
         )}
 
@@ -269,7 +302,7 @@ export default function Home() {
 
         <footer className="mt-16 text-center space-y-2">
           <div className="text-xs text-cyan-400/50 font-mono">
-            <p>[ POWERED BY SUI BLOCKCHAIN + GEMINI 2.5 FLASH AI ]</p>
+            <p>[ POWERED BY SUI BLOCKCHAIN ]</p>
           </div>
           <div className="flex items-center justify-center gap-2 text-xs text-cyan-400/30 font-mono">
             <Zap className="h-3 w-3 animate-pulse-glow" />
@@ -283,6 +316,18 @@ export default function Home() {
         open={showAuthModal}
         onOpenChange={setShowAuthModal}
         onSuccess={() => {
+          setError(null);
+        }}
+      />
+
+      <PricingModal
+        open={showPricingModal}
+        onOpenChange={setShowPricingModal}
+        userCredits={credits}
+        onSuccess={() => {
+          if (user) {
+            loadCredits(user.id);
+          }
           setError(null);
         }}
       />
